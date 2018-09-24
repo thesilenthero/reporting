@@ -60,6 +60,7 @@ class Report(object):
 
         self.format = self.body.get('format')
         self.name = self.body.get('name')
+        self.filename = self.body.get('fileName')
         # Pull in report attributes
 
     def get_report_body(self):

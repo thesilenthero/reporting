@@ -1,0 +1,13 @@
+*.jar
+*.exe
+*.log
+*.xlsx
+*.pyc
+*.xlsm
+*.csv
+*.json
+**/env
+**/__pycache__/
+LICENSE
+README.md
+ids.py

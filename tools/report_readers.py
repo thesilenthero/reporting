@@ -59,15 +59,7 @@ def spread_units(df, left_columns, right_column):
     return df[right_column] / counts
 
 
-def load_dcm(report_id, profile_id, path=None, force_run=False):
-
-    filename = Report(profile_id, report_id).name + ".csv"
-
-    if path is None:
-        path = os.path.join(dcm_report_path, filename)
-
-    if not os.path.isfile(path) or force_run is True:
-        run_and_download_report(report_id, profile_id, path)
+def load_from_csv(path):
 
     with open(path, "r") as f:
         reader = csv.reader(f)
@@ -92,6 +84,21 @@ def load_dcm(report_id, profile_id, path=None, force_run=False):
 
     df.date_generated = date_generated
     df.date_range = date_range
+
+    return df
+
+
+def load_dcm(report_id, profile_id, path=None, force_run=False):
+
+    filename = Report(profile_id, report_id).name + ".csv"
+
+    if path is None:
+        path = os.path.join(dcm_report_path, filename)
+
+    if not os.path.isfile(path) or force_run is True:
+        run_and_download_report(report_id, profile_id, path)
+
+    df = load_from_csv(path)
 
     return df
 

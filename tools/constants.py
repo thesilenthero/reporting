@@ -8,17 +8,6 @@ plan_path = os.path.join(inputs_path, 'plans')
 final_report_path = os.path.join(module_path, 'final_reports')
 
 
-def update_paths(new_path):
-    module_path = new_path
-    inputs_path = os.path.join(module_path, 'inputs')
-    dcm_report_path = os.path.join(inputs_path, 'dcm_reports')
-    prog_report_path = os.path.join(inputs_path, 'programmatic_reports')
-    plan_path = os.path.join(inputs_path, 'plans')
-    final_report_path = os.path.join(module_path, 'final_reports')
-
-    create_paths()
-
-
 def create_paths():
     for path in [dcm_report_path, prog_report_path, plan_path, final_report_path]:
         if not os.path.isdir(path):
