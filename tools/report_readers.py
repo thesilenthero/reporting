@@ -16,7 +16,11 @@ import warnings
 report_files = list(os.walk(prog_report_path))[-1][-1]
 programmatic_report_files = [os.path.join(prog_report_path, file) for file in report_files]
 
-# hello there!
+
+def get_files_in_folder(path):
+    files = next(os.walk(path))[-1]
+    files = [os.path.join(path, file) for file in files]
+    return files
 
 
 def parse_datestr(datestr):
@@ -92,12 +96,10 @@ def load_from_csv(path):
 
 def load_dcm(report_id, profile_id, path=None, force_run=False):
 
-    filename = Report(profile_id, report_id).name + ".csv"
-
     if path is None:
-        path = os.path.join(dcm_report_path, filename)
+        path = os.path.join(dcm_report_path, Report(profile_id, report_id).filename, '.csv')
 
-    if not os.path.isfile(path) or force_run is True:
+    if not os.path.isfile(path) or force_run:
         run_and_download_report(report_id, profile_id, path)
 
     df = load_from_csv(path)

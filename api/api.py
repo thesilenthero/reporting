@@ -89,8 +89,7 @@ class Report(object):
         request = self._service.files().get_media(reportId=self.id, fileId=file_id)
         response = request.execute()
 
-        _, ext = os.path.splitext(filename)
-        if ext.lower() != '.csv':
+        if self.format.lower() != 'csv':
             raise TypeError("Wrong format; must be CSV")
 
         with open(filename, 'w') as f:
@@ -240,10 +239,10 @@ def run_and_download_report(report_id, profile_id, path=None, check_interval=10)
     print(f"Running report '{report.name}'...")
 
     report = Report(profile_id, report_id)
-    today = dt.datetime.today().strftime('%Y-%m-%d')
+    # today = dt.datetime.today().strftime('%Y-%m-%d')
 
     if path is None:
-        path = os.path.join(os.getcwd(), f'{report.name}_{today}.csv')
+        path = os.path.join(os.getcwd(), f'{report.filename}.csv')
 
     file_id = report.run()
 
