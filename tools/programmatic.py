@@ -1,6 +1,7 @@
 # programmatic.py
 import os
 import pandas as pd
+import numpy as np
 import warnings
 
 from .constants import prog_report_path
@@ -39,7 +40,7 @@ def merge_with_programmatic(dcm_data, prog_report="default", join_on=None):
     return dcm_data
 
 
-def get_placement_column(df):
+def get_programmatic_placement_column(df):
     cols = []
 
     for col in df.columns:
@@ -64,7 +65,7 @@ def get_prog_spend_df(path_to_report):
         if np.issubdtype(df[col].dtype, np.number):
             df[col] = pd.to_numeric(df[col])
 
-    placement_column = get_placement_column(df)
+    placement_column = get_programmatic_placement_column(df)
 
     if not placement_column:
         return None
