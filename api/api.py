@@ -126,7 +126,7 @@ class Report(object):
 
             self.body = new_body
 
-    def set_date_range(self, *, start=None, end=None, period=None):
+    def set_date_range(self, start=None, end=None, period=None):
 
         # LAST_14_DAYS
         # LAST_24_MONTHS
