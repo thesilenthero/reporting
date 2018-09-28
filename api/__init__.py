@@ -11,4 +11,4 @@ if os.path.isfile(credentials) is False:
 
     authenticate.run(scope, secret_path)
 
-from .api import Profile, Report, run_and_download_report, get_profiles
+from .api import Profile, Report, run_and_download_report, get_profiles, create_service, is_valid_user

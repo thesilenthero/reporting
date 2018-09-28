@@ -9,7 +9,6 @@ into Excel.
 
 
 import os
-import datetime as dt
 import time
 
 from apiclient.discovery import build
@@ -27,7 +26,7 @@ class Profile(object):
             raise ValueError(f'Invalid user profile id: {profile_id}')
 
         self.profile_id = str(profile_id)
-        self._service = _create_service()
+        self._service = create_service()
 
         self.metadata = [pr for pr in get_profiles() if pr['profileId'] == self.profile_id][0]
 
@@ -52,7 +51,7 @@ class Report(object):
         self.profile_id = str(profile_id)
 
         if service is None:
-            self._service = _create_service()
+            self._service = create_service()
         else:
             self._service = service
 
@@ -189,8 +188,8 @@ class Report(object):
 #         return f"File(file_id='{self.file_id}', status='{self.status}', date_ran='{self.date_ran}')"
 
 
-def _create_service(api_name='dfareporting', version='v2.8',
-                    credentials='credentials.json'):
+def create_service(api_name='dfareporting', version='v2.8',
+                   credentials='credentials.json'):
     '''
     Returns a service object from which API calls are made. The Report and
     Profile classes use this function to create a 'service' attribute; it is
@@ -229,7 +228,7 @@ def is_valid_user(profile_id):
 
 
 def get_profiles():
-    service = _create_service()
+    service = create_service()
     request = service.userProfiles().list()
     return request.execute()['items']
 

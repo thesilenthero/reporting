@@ -55,7 +55,7 @@ def get_programmatic_placement_column(df):
     if len(cols) == 1:
         return cols[0]
     else:
-        raise ValueError(f"Multiple placement columns detected: {cols}. Make sure only one column has the DCM placement name.")
+        raise ValueError(f"Multiple placement columns found: {cols}. Make sure only one column has the DCM placement name.")
 
 
 def get_prog_spend_df(path_to_report):
