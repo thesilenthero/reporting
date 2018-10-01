@@ -9,7 +9,6 @@ into Excel.
 
 
 import os
-import datetime as dt
 import time
 
 from apiclient.discovery import build
@@ -19,17 +18,37 @@ from googleapiclient import errors
 from contextlib import contextmanager
 
 
+class APIResource(object):
+
+    def __init__(self, name, **params):
+        self.name = name
+        self.service = _create_service()
+        self.params = params
+        self.body = self.get()
+
+    def get(self):
+        obj = getattr(self.service, self.name)()
+        req = obj.get(**self.params)
+        return req.execute()
+
+    def list(self):
+        raise NotImplementedError
+
+    def update(self):
+        raise NotImplementedError
+
+
 class Profile(object):
 
-    def __init__(self, profile_id):
+    def __init__(self, profileId):
 
-        if not is_valid_user(profile_id):
-            raise ValueError(f'Invalid user profile id: {profile_id}')
+        if not is_valid_user(profileId):
+            raise ValueError(f'Invalid user profile id: {profileId}')
 
-        self.profile_id = str(profile_id)
-        self._service = _create_service()
+        self.profileId = str(profileId)
+        self.service = _create_service()
 
-        self.metadata = [pr for pr in get_profiles() if pr['profileId'] == self.profile_id][0]
+        self.metadata = [pr for pr in get_profiles() if pr['profileId'] == self.profileId][0]
 
         self.username = self.metadata.get('userName')
         self.accountname = self.metadata.get('accountName')
@@ -38,25 +57,19 @@ class Profile(object):
         pass
 
     def get_reports(self):
-        request = self._service.reports().list(profileId=self.profile_id)
+        request = self.service.reports().list(profileId=self.profileId)
         response = request.execute()
-        reports = [Report(self.profile_id, report['id'], self._service)
+        reports = [Report(self.profileId, report['id'], self.service)
                    for report in response['items']]
         return reports
 
 
-class Report(object):
+class Report(APIResource):
 
-    def __init__(self, profile_id, report_id, service=None,):
-        self.id = str(report_id)
-        self.profile_id = str(profile_id)
-
-        if service is None:
-            self._service = _create_service()
-        else:
-            self._service = service
-
-        self.body = self.get_report_body()
+    def __init__(self, profileId, reportId):
+        super().__init__('reports', reportId=reportId, profileId=profileId)
+        self.reportId = str(reportId)
+        self.profileId = str(profileId)
 
         self.format = self.body.get('format')
         self.name = self.body.get('name')
@@ -64,7 +77,7 @@ class Report(object):
         # Pull in report attributes
 
     def get_report_body(self):
-        request = self._service.reports().get(profileId=self.profile_id, reportId=self.id)
+        request = self.service.reports().get(profileId=self.profileId, reportId=self.reportId)
 
         return request.execute()
 
@@ -73,26 +86,26 @@ class Report(object):
 
     def get_available_files(self, get_all=True):
         '''Get a list of all files associated with a report id'''
-        request = self._service.files().list(profileId=self.profile_id)
+        request = self.service.files().list(profileId=self.profileId)
         response = request.execute()['items']
 
         files = response
 
         return sorted(files, key=lambda f: int(f['lastModifiedTime']))
 
-    def download_file(self, file_id, filename):
+    def download_file(self, file_id, path):
         '''
         Download report file and return as a raw CSV format.
         Accepts reportid and file_id as arguments.
         '''
 
-        request = self._service.files().get_media(reportId=self.id, fileId=file_id)
+        request = self.service.files().get_media(reportId=self.reportId, fileId=file_id)
         response = request.execute()
 
         if self.format.lower() != 'csv':
             raise TypeError("Wrong format; must be CSV")
 
-        with open(filename, 'w') as f:
+        with open(path, 'w') as f:
             f.write(response.decode())
         return True
 
@@ -108,8 +121,8 @@ class Report(object):
     def run(self):
         '''Run a report. Returns the file_id if successful'''
 
-        request = self._service.reports().run(profileId=self.profile_id,
-                                              reportId=self.id)
+        request = self.service.reports().run(profileId=self.profileId,
+                                             reportId=self.reportId)
         file = request.execute()
         return file['id']
 
@@ -121,7 +134,7 @@ class Report(object):
 
         finally:
 
-            req = self._service.reports().update(reportId=self.id, profileId=self.profile_id, body=body)
+            req = self.service.reports().update(reportId=self.reportId, profileId=self.profileId, body=body)
             new_body = req.execute()
 
             self.body = new_body
@@ -171,14 +184,14 @@ class Report(object):
             body["fileName"] = filename
 
     def __repr__(self):
-        return f"Report(name='{self.name}', id='{self.id}', profile_id='{self.profile_id}')"
+        return f"Report(name='{self.name}', id='{self.reportId}', profileId='{self.profileId}')"
 
 
 # class File(object):
 
-#     def __init__(self, file_id, report_id, timestamp, status, info):
+#     def __init__(self, file_id, reportId, timestamp, status, info):
 #         self.file_id = file_id
-#         self.report_id = report_id
+#         self.reportId = reportId
 #         self.status = status
 #         self.info = info
 
@@ -218,11 +231,11 @@ def _create_service(api_name='dfareporting', version='v2.8',
     return service
 
 
-def is_valid_user(profile_id):
-    profile_id = str(profile_id)
+def is_valid_user(profileId):
+    profileId = str(profileId)
     profiles = get_profiles()
 
-    if profile_id in [x['profileId'] for x in profiles]:
+    if profileId in [x['profileId'] for x in profiles]:
         return True
 
     return False
@@ -234,11 +247,11 @@ def get_profiles():
     return request.execute()['items']
 
 
-def run_and_download_report(report_id, profile_id, path=None, check_interval=10):
-    report = Report(report_id=report_id, profile_id=profile_id)
+def run_and_download_report(profileId, reportId, path=None, check_interval=10):
+    report = Report(reportId=reportId, profileId=profileId)
     print(f"Running report '{report.name}'...")
 
-    report = Report(profile_id, report_id)
+    report = Report(profileId, reportId)
     # today = dt.datetime.today().strftime('%Y-%m-%d')
 
     if path is None:
@@ -261,6 +274,5 @@ def run_and_download_report(report_id, profile_id, path=None, check_interval=10)
 
 
 if __name__ == '__main__':
-    profile = Profile(4251083)
-    report = profile.get_reports()[0]
-    print(get_profiles())
+    rep = Report(profileId=3085707, reportId=155277304)
+    print(rep)
