@@ -187,29 +187,9 @@ class Report(APIResource):
         return f"Report(name='{self.name}', id='{self.reportId}', profileId='{self.profileId}')"
 
 
-# class File(object):
-
-#     def __init__(self, file_id, reportId, timestamp, status, info):
-#         self.file_id = file_id
-#         self.reportId = reportId
-#         self.status = status
-#         self.info = info
-
-#         timestamp = int(str(timestamp)[:10])
-#         self.date_ran = dt.datetime.fromtimestamp(timestamp)
-
-#     def __repr__(self):
-#         return f"File(file_id='{self.file_id}', status='{self.status}', date_ran='{self.date_ran}')"
-
-
 def _create_service(api_name='dfareporting', version='v2.8',
                     credentials='credentials.json'):
     '''
-    Returns a service object from which API calls are made. The Report and
-    Profile classes use this function to create a 'service' attribute; it is
-    through this that various calls are made to the API.
-    Requires a credentials file saved in the same location as the module. This
-    can be obtained by running authenticate.py
     Args:
     api_name (default 'dfareporting')
     version (default 'v2.8')
@@ -275,4 +255,3 @@ def run_and_download_report(profileId, reportId, path=None, check_interval=10):
 
 if __name__ == '__main__':
     rep = Report(profileId=3085707, reportId=155277304)
-    print(rep)

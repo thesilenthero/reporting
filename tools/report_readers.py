@@ -93,7 +93,7 @@ def load_from_csv(path):
 def load_dcm(profileId, reportId, path=None, force_run=False):
 
     if path is None:
-        path = os.path.join(dcm_report_path, Report(profileId, reportId).filename, '.csv')
+        path = os.path.join(dcm_report_path, Report(profileId, reportId).filename + '.csv')
 
     if not os.path.isfile(path) or force_run:
         run_and_download_report(profileId, reportId, path=path)
