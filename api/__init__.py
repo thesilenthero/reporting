@@ -4,7 +4,7 @@ from . import authenticate
 
 credentials = os.path.join(os.path.split(authenticate.__file__)[0], 'credentials.json')
 
-if os.path.isfile(credentials) is False:
+if not os.path.isfile(credentials):
     path, _ = os.path.split(__file__)
     secret_path = os.path.join(path, 'client_secret.json')
     scope = 'https://www.googleapis.com/auth/dfareporting'

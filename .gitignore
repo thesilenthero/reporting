@@ -8,6 +8,7 @@
 *.json
 **/env
 **/__pycache__/
+practice.py
 LICENSE
 README.md
 ids.py
