@@ -7,7 +7,7 @@ import parsedatetime as pdt
 import xlwings as xw
 
 from .prisma import MediaPlan, get_media_plan_files
-from .constants import dcm_report_path, plan_path
+from .config import dcm_report_path, plan_path
 from api import run_and_download_report, Report
 
 import warnings
@@ -24,7 +24,7 @@ def parse_datestr(datestr):
     return datetime(*cal.parse(datestr)[0][:6])
 
 
-def spread_units(df, left_columns, right_column):
+def redistribute_units(df, left_columns, right_column):
     """
     When combining datasets, some columns might be duplicated. This is a common
     scenario when including planned costs in a DCM report that has more dimensions
@@ -42,7 +42,7 @@ def spread_units(df, left_columns, right_column):
     3    B  2000
     4    B  2000
 
-    >>> spread_units(df, ['Col1'], 'Col2')
+    >>> redistribute_units(df, ['Col1'], 'Col2')
     >>>
     0     333.333333
     1     333.333333

@@ -22,7 +22,7 @@ class APIResource(object):
 
     def __init__(self, name, **params):
         self.name = name
-        self.service = _create_service()
+        self.service = create_service()
         self.params = params
         self.body = self.get()
 
@@ -45,13 +45,8 @@ class Profile(object):
         if not is_valid_user(profileId):
             raise ValueError(f'Invalid user profile id: {profileId}')
 
-<<<<<<< HEAD
-        self.profile_id = str(profile_id)
-        self._service = create_service()
-=======
         self.profileId = str(profileId)
-        self.service = _create_service()
->>>>>>> api
+        self.service = create_service()
 
         self.metadata = [pr for pr in get_profiles() if pr['profileId'] == self.profileId][0]
 
@@ -71,23 +66,10 @@ class Profile(object):
 
 class Report(APIResource):
 
-<<<<<<< HEAD
-    def __init__(self, profile_id, report_id, service=None,):
-        self.id = str(report_id)
-        self.profile_id = str(profile_id)
-
-        if service is None:
-            self._service = create_service()
-        else:
-            self._service = service
-
-        self.body = self.get_report_body()
-=======
     def __init__(self, profileId, reportId):
         super().__init__('reports', reportId=reportId, profileId=profileId)
         self.reportId = str(reportId)
         self.profileId = str(profileId)
->>>>>>> api
 
         self.format = self.body.get('format')
         self.name = self.body.get('name')

@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from .constants import prog_report_path
+from .config import prog_report_path
 
 report_files = list(os.walk(prog_report_path))[-1][-1]
 programmatic_report_files = [os.path.join(prog_report_path, file) for file in report_files]

@@ -3,7 +3,7 @@ from collections import defaultdict
 import os
 import re
 
-from .constants import plan_path
+from .config import plan_path
 
 
 from selenium import webdriver
@@ -104,7 +104,7 @@ class MediaPlan(object):
 
         with open(dest, "w", newline="\n") as f:
             writer = csv.writer(f)
-            writer.writerow(["Placement", "Planned Units", "Planned Cost", "Rate", "Placement Start Date", "Placement End Date"])
+            writer.writerow(["Campaign", "Placement", "Planned Units", "Planned Cost", "Rate", "Placement Start Date", "Placement End Date"])
             for row in self.output:
                 writer.writerow(row)
 
@@ -164,7 +164,7 @@ class PrismaWebPage(object):
         except exceptions.NoSuchElementException:
             return False
 
-    @delay(1)
+    @delay(5)
     def find_element(self, by, lookup):
         return self.driver.find_element(by, lookup)
 
@@ -195,6 +195,9 @@ class PrismaWebPage(object):
 
         download_link = self.find_element(By.LINK_TEXT, "Export media plan")
         download_link.send_keys(Keys.RETURN)
+
+    def close(self):
+        self.driver.close()
 
 
 if __name__ == '__main__':
