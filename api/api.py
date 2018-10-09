@@ -24,11 +24,11 @@ class APIResource(object):
         self.name = name
         self.service = create_service()
         self.params = params
-        self.body = self.get()
+        self.body = self.get(**params)
 
-    def get(self):
+    def get(self, **kws):
         obj = getattr(self.service, self.name)()
-        req = obj.get(**self.params)
+        req = obj.get(**kws)
         return req.execute()
 
     def list(self):
@@ -38,20 +38,18 @@ class APIResource(object):
         raise NotImplementedError
 
 
-class Profile(object):
+class Profile(APIResource):
 
     def __init__(self, profileId):
 
         if not is_valid_user(profileId):
             raise ValueError(f'Invalid user profile id: {profileId}')
 
+        super().__init__(name="userProfiles", profileId=profileId)
         self.profileId = str(profileId)
-        self.service = create_service()
 
-        self.metadata = [pr for pr in get_profiles() if pr['profileId'] == self.profileId][0]
-
-        self.username = self.metadata.get('userName')
-        self.accountname = self.metadata.get('accountName')
+        self.username = self.body.get('userName')
+        self.accountname = self.body.get('accountName')
 
     def make_request(self):
         pass
@@ -63,11 +61,15 @@ class Profile(object):
                    for report in response['items']]
         return reports
 
+    def __repr__(self):
+        return f"Profile({self.profileId}, name='{self.accountname}')"
+
 
 class Report(APIResource):
 
     def __init__(self, profileId, reportId):
         super().__init__('reports', reportId=reportId, profileId=profileId)
+
         self.reportId = str(reportId)
         self.profileId = str(profileId)
 
@@ -227,7 +229,7 @@ def get_profiles():
     return request.execute()['items']
 
 
-def run_and_download_report(profileId, reportId, path=None, check_interval=10):
+def run_and_download_report(profileId, reportId, path=None, check_interval=2):
     report = Report(reportId=reportId, profileId=profileId)
     print(f"Running report '{report.name}'...")
 
@@ -248,6 +250,8 @@ def run_and_download_report(profileId, reportId, path=None, check_interval=10):
         except errors.HttpError:
             print(f"Report '{report.name}' hasn't finished running. Trying again...")
             time.sleep(check_interval)
+
+            check_interval = check_interval ** 2
         else:
             print(f"Downloaded {path}")
             flag = False
