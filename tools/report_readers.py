@@ -24,7 +24,7 @@ def parse_datestr(datestr):
     return datetime(*cal.parse(datestr)[0][:6])
 
 
-def redistribute_units(df, left_columns, right_column):
+def redistribute_units(df, left_columns, right_column, weighted_on='na'):
     """
     When combining datasets, some columns might be duplicated. This is a common
     scenario when including planned costs in a DCM report that has more dimensions
@@ -52,13 +52,19 @@ def redistribute_units(df, left_columns, right_column):
     dtype: float64
     """
 
-    if isinstance(left_columns, str):
-        left_columns = [left_columns]
+    if weighted_on == 'na':
 
-    mapping = df.groupby(left_columns).count()
-    counts = df.apply(lambda row: mapping.loc[tuple(row[left_columns])][right_column], axis=1)
+        if isinstance(left_columns, str):
+            left_columns = [left_columns]
 
-    return df[right_column] / counts
+        mapping = df.groupby(left_columns).count()
+        print(mapping)
+        counts = df.apply(lambda row: mapping.loc[tuple(row[left_columns])][right_column], axis=1)
+        return df[right_column] / counts
+
+    else:
+
+        pass
 
 
 def load_from_csv(path):
@@ -124,7 +130,10 @@ def merge_with_prisma(df, plan='default', join_on=None):
         plan.parse()
         parsed_plans.extend(plan.output)
 
-    df2 = pd.DataFrame(parsed_plans, columns=["Campaign", "Placement", "Planned Units", "Planned Cost", "Rate", "Placement Start Date", "Placement End Date"])
+    df2 = pd.DataFrame(parsed_plans, columns=["Campaign", "Placement",
+                                              "Planned Units", "Planned Cost",
+                                              "Rate", "Placement Start Date",
+                                              "Placement End Date"])
 
     df.sort_values(['Site (DCM)', 'Placement'], inplace=True)
     df = df.merge(df2.drop_duplicates(), how="left", left_on=join_on,

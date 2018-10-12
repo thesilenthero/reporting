@@ -1,10 +1,7 @@
-# myproject.py
+# api.py
 
 """
 Module for downloading reports via the DCM API.
-It aims to eliminate what is otherwise a repetitive and time-consuming task:
-manually going into the platform, selecting, downloading, then copy/pasting the data
-into Excel.
 """
 
 
@@ -20,14 +17,14 @@ from contextlib import contextmanager
 
 class APIResource(object):
 
-    def __init__(self, name, **params):
-        self.name = name
+    def __init__(self, resource_type, **params):
+        self.resource_type = resource_type
         self.service = create_service()
         self.params = params
         self.body = self.get(**params)
 
     def get(self, **kws):
-        obj = getattr(self.service, self.name)()
+        obj = getattr(self.service, self.resource_type)()
         req = obj.get(**kws)
         return req.execute()
 
@@ -45,7 +42,7 @@ class Profile(APIResource):
         if not is_valid_user(profileId):
             raise ValueError(f'Invalid user profile id: {profileId}')
 
-        super().__init__(name="userProfiles", profileId=profileId)
+        super().__init__("userProfiles", profileId=profileId)
         self.profileId = str(profileId)
 
         self.username = self.body.get('userName')
@@ -73,10 +70,19 @@ class Report(APIResource):
         self.reportId = str(reportId)
         self.profileId = str(profileId)
 
-        self.format = self.body.get('format')
-        self.name = self.body.get('name')
-        self.filename = self.body.get('fileName')
         # Pull in report attributes
+
+    @property
+    def format(self):
+        return self.body.get('format')
+
+    @property
+    def name(self):
+        return self.body.get('name')
+
+    @property
+    def filename(self):
+        return self.body.get('fileName')
 
     def get_report_body(self):
         request = self.service.reports().get(profileId=self.profileId, reportId=self.reportId)
@@ -96,20 +102,19 @@ class Report(APIResource):
         return sorted(files, key=lambda f: int(f['lastModifiedTime']))
 
     def download_file(self, file_id, path):
-        '''
-        Download report file and return as a raw CSV format.
-        Accepts reportid and file_id as arguments.
-        '''
 
         request = self.service.files().get_media(reportId=self.reportId, fileId=file_id)
         response = request.execute()
 
-        if self.format.lower() != 'csv':
-            raise TypeError("Wrong format; must be CSV")
+        if self.format == "CSV":
 
-        with open(path, 'w') as f:
-            f.write(response.decode())
-        return True
+            with open(path, 'w') as f:
+                f.write(response.decode())
+
+        if self.format == "EXCEL":
+
+            with open(path, 'wb') as f:
+                f.write(response)
 
     def download_latest_file(self, filename):
         files = self.get_available_files()
@@ -117,8 +122,8 @@ class Report(APIResource):
         if len(files) == 0:
             raise ValueError("No files available for download with this report")
 
-        latest = sorted(files, key=lambda f: f.date_ran, reverse=True)[0]
-        return self.download_file(latest.file_id, filename)
+        latest = sorted(files, key=lambda f: f['lastModifiedTime'], reverse=True)[0]
+        return self.download_file(latest['id'], filename)
 
     def run(self):
         '''Run a report. Returns the file_id if successful'''
@@ -136,7 +141,9 @@ class Report(APIResource):
 
         finally:
 
-            req = self.service.reports().update(reportId=self.reportId, profileId=self.profileId, body=body)
+            req = self.service.reports().update(reportId=self.reportId,
+                                                profileId=self.profileId,
+                                                body=body)
             new_body = req.execute()
 
             self.body = new_body
@@ -185,6 +192,14 @@ class Report(APIResource):
         with self.update_request_body() as body:
             body["fileName"] = filename
 
+    def set_format(self, format):
+
+        if format not in ["CSV", "EXCEL"]:
+            raise ValueError("Wrong format, must be either 'CSV' or 'EXCEL'")
+
+        with self.update_request_body() as body:
+            body["format"] = format
+
     def __repr__(self):
         return f"Report(name='{self.name}', id='{self.reportId}', profileId='{self.profileId}')"
 
@@ -215,9 +230,8 @@ def create_service(api_name='dfareporting', version='v2.8',
 
 def is_valid_user(profileId):
     profileId = str(profileId)
-    profiles = get_profiles()
 
-    if profileId in [x['profileId'] for x in profiles]:
+    if profileId in [x['profileId'] for x in get_profiles()]:
         return True
 
     return False
@@ -229,7 +243,7 @@ def get_profiles():
     return request.execute()['items']
 
 
-def run_and_download_report(profileId, reportId, path=None, check_interval=2):
+def run_and_download_report(profileId, reportId, path=None, check_interval=10):
     report = Report(reportId=reportId, profileId=profileId)
     print(f"Running report '{report.name}'...")
 
@@ -237,7 +251,13 @@ def run_and_download_report(profileId, reportId, path=None, check_interval=2):
     # today = dt.datetime.today().strftime('%Y-%m-%d')
 
     if path is None:
-        path = os.path.join(os.getcwd(), f'{report.filename}.csv')
+        filename = report.filename
+        if report.format == "EXCEL":
+            filename = filename + ".xlsx"
+        else:
+            filename = filename + ".csv"
+
+        path = os.path.join(os.getcwd(), f'{report.filename}')
 
     file_id = report.run()
 
@@ -251,7 +271,7 @@ def run_and_download_report(profileId, reportId, path=None, check_interval=2):
             print(f"Report '{report.name}' hasn't finished running. Trying again...")
             time.sleep(check_interval)
 
-            check_interval = check_interval ** 2
+            # check_interval += check_interval ** 2
         else:
             print(f"Downloaded {path}")
             flag = False
