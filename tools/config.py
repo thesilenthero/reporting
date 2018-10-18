@@ -8,5 +8,11 @@ plan_path = os.path.join(inputs_path, 'plans')
 final_report_path = os.path.join(module_path, 'final_reports')
 
 
+def create_folders():
+    for path in [module_path, inputs_path, dcm_report_path, prog_report_path, plan_path, final_report_path]:
+        if not os.path.isdir(path):
+            os.mkdir(path)
+
+
 if __name__ == '__main__':
     pass

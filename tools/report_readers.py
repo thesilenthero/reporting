@@ -58,7 +58,6 @@ def redistribute_units(df, left_columns, right_column, weighted_on='na'):
             left_columns = [left_columns]
 
         mapping = df.groupby(left_columns).count()
-        print(mapping)
         counts = df.apply(lambda row: mapping.loc[tuple(row[left_columns])][right_column], axis=1)
         return df[right_column] / counts
 

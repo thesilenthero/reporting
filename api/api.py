@@ -19,12 +19,12 @@ class APIResource(object):
 
     def __init__(self, resource_type, **params):
         self.resource_type = resource_type
-        self.service = create_service()
+        self._service = create_service()
         self.params = params
         self.body = self.get(**params)
 
     def get(self, **kws):
-        obj = getattr(self.service, self.resource_type)()
+        obj = getattr(self._service, self.resource_type)()
         req = obj.get(**kws)
         return req.execute()
 
@@ -52,9 +52,9 @@ class Profile(APIResource):
         pass
 
     def get_reports(self):
-        request = self.service.reports().list(profileId=self.profileId)
+        request = self._service.reports().list(profileId=self.profileId)
         response = request.execute()
-        reports = [Report(self.profileId, report['id'], self.service)
+        reports = [Report(self.profileId, report['id'], self._service)
                    for report in response['items']]
         return reports
 
@@ -85,7 +85,7 @@ class Report(APIResource):
         return self.body.get('fileName')
 
     def get_report_body(self):
-        request = self.service.reports().get(profileId=self.profileId, reportId=self.reportId)
+        request = self._service.reports().get(profileId=self.profileId, reportId=self.reportId)
 
         return request.execute()
 
@@ -94,7 +94,7 @@ class Report(APIResource):
 
     def get_available_files(self, get_all=True):
         '''Get a list of all files associated with a report id'''
-        request = self.service.files().list(profileId=self.profileId)
+        request = self._service.files().list(profileId=self.profileId)
         response = request.execute()['items']
 
         files = response
@@ -103,7 +103,7 @@ class Report(APIResource):
 
     def download_file(self, file_id, path):
 
-        request = self.service.files().get_media(reportId=self.reportId, fileId=file_id)
+        request = self._service.files().get_media(reportId=self.reportId, fileId=file_id)
         response = request.execute()
 
         if self.format == "CSV":
@@ -128,8 +128,8 @@ class Report(APIResource):
     def run(self):
         '''Run a report. Returns the file_id if successful'''
 
-        request = self.service.reports().run(profileId=self.profileId,
-                                             reportId=self.reportId)
+        request = self._service.reports().run(profileId=self.profileId,
+                                              reportId=self.reportId)
         file = request.execute()
         return file['id']
 
@@ -141,9 +141,9 @@ class Report(APIResource):
 
         finally:
 
-            req = self.service.reports().update(reportId=self.reportId,
-                                                profileId=self.profileId,
-                                                body=body)
+            req = self._service.reports().update(reportId=self.reportId,
+                                                 profileId=self.profileId,
+                                                 body=body)
             new_body = req.execute()
 
             self.body = new_body
@@ -167,6 +167,9 @@ class Report(APIResource):
         # WEEK_TO_DATE
         # YEAR_TO_DATE
         # YESTERDAY
+        """
+
+        """
 
         if (start or end) and period:
             raise ValueError("You select either a start and end date, or a period, but not both")

@@ -13,7 +13,7 @@ def run(scope, secret_path):
     flow = flow_from_clientsecrets(secret_path,
                                    scope=scope)
 
-    credentials = tools.run_flow(flow, storage, flags)
+    tools.run_flow(flow, storage, flags)
 
 
 if __name__ == '__main__':
