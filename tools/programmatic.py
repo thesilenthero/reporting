@@ -1,74 +1,46 @@
 # programmatic.py
 import os
 import pandas as pd
-import numpy as np
-import warnings
 
 from .config import prog_report_path
+from .report_readers import redistribute_units
 
 report_files = list(os.walk(prog_report_path))[-1][-1]
 programmatic_report_files = [os.path.join(prog_report_path, file) for file in report_files]
 
 
-def merge_with_programmatic(dcm_data, prog_report="default", join_on=None):
+def find_matching_column(df, pattern):
+    result = [col for col in df.columns if set(df[col].astype(str).str.match(pattern)) == {True}]
 
-    if join_on is None:
-        join_on = ["Placement"]
-    elif "Placement" not in join_on:
-        raise ValueError("Reports must be merged by at least the placement level")
-
-    if prog_report == 'default':
-        prog_spends = [get_prog_spend_df(file) for file in programmatic_report_files]
-
+    if not result:
+        raise ValueError(f"No column matches '{pattern}'")
     else:
-        if isinstance(prog_report, str):
-            prog_spends = [get_prog_spend_df(prog_report)]
-        else:
-            prog_spends = [get_prog_spend_df(file) for file in prog_report]
-
-    prog_spend = pd.concat(prog_spends, axis=0)
-    spend_mapping = prog_spend.to_dict('index')
-
-    def mappingfunc(row):
-        if spend_mapping.get(row['Placement']):
-            return spend_mapping.get(row['Placement']).get('Spend')
-        else:
-            return row['Media Cost']
-
-    dcm_data['Media Cost'] = dcm_data.apply(mappingfunc, axis=1)
-
-    return dcm_data
+        return result[0]
 
 
-def get_programmatic_placement_column(df):
-    cols = []
+def merge_with_programmatic_report(prog_filepath, prog_sheet_name, dcm_df, merge_on=['Placement ID'], merge_prog_columns=['Spend']):
 
-    for col in df.columns:
-        try:
-            warnings.filterwarnings('ignore')
+    if 'Placement ID' not in merge_on:
+        error_message = "The reports have to be merged on at least the Placement ID level."
+        raise ValueError(error_message)
 
-            if set(df[col].str.contains(r"_ACCUEN CANADA(\s\(CDN\$\))?_")) == {True}:
-                cols.append(col)
-        except AttributeError:
-            pass
+    prog_df = pd.read_excel(prog_filepath, sheet_name=prog_sheet_name)
 
-    if len(cols) == 1:
-        return cols[0]
-    else:
-        raise ValueError(f"Multiple placement columns found: {cols}. Make sure only one column has the DCM placement name.")
+    if 'Date' in prog_df:
+        prog_df['Date'] = pd.to_datetime(prog_df['Date'])
 
+    if 'Date' in dcm_df:
+        dcm_df['Date'] = pd.to_datetime(dcm_df['Date'])
 
-def get_prog_spend_df(path_to_report):
-    df = pd.read_excel(path_to_report, sheet_name="Raw Data")
+    placement_id_col = find_matching_column(prog_df, r"^\d{9}$")
 
-    for col in df.columns:
-        if np.issubdtype(df[col].dtype, np.number):
-            df[col] = pd.to_numeric(df[col])
+    prog_merge_on = merge_on.copy()
+    prog_merge_on[prog_merge_on.index('Placement ID')] = placement_id_col
 
-    placement_column = get_programmatic_placement_column(df)
+    prog_spend = pd.DataFrame(prog_df.groupby(prog_merge_on)[merge_prog_columns].sum())
 
-    if not placement_column:
-        return None
-    else:
-        df_spend = pd.DataFrame(df.groupby([placement_column])["Spend"].sum())
-        return df_spend
+    dcm_df = dcm_df.merge(prog_spend, left_on=merge_on, right_index=True, how='left')
+
+    dcm_df['Spend'] = redistribute_units(dcm_df, merge_on, 'Spend')
+
+    return dcm_df

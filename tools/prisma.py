@@ -110,8 +110,12 @@ class MediaPlan(object):
 
 
 def get_media_plan_files(path=None):
+
     if not path:
         path = plan_path
+
+    if not os.path.isdir(path):
+        raise ValueError(f"{path} is not a directory.")
 
     files = next(os.walk(path))[2]
     output = []
@@ -125,7 +129,7 @@ def get_media_plan_files(path=None):
 def delay(seconds=10):
     def outer_wrapper(func):
         def wrapper(*ars, **kws):
-            print(f"Waiting {seconds} seconds")
+            # print(f"Waiting {seconds} seconds")
             time.sleep(seconds)
             return func(*ars, **kws)
         return wrapper
@@ -134,15 +138,15 @@ def delay(seconds=10):
 
 class PrismaWebPage(object):
 
-    def __init__(self, campaign_id, download_path="default"):
+    def __init__(self, campaign_id, folder_path="default"):
         self.campaign_id = campaign_id
 
         self.url = f"https://omgca-prisma.mediaocean.com/campaign-management/#osAppId=prsm-cm-spa&osPspId=prsm-cm-buy&campaign-id={self.campaign_id.upper()}&route=online"
 
-        if download_path == "default":
+        if folder_path == "default":
             destination = plan_path
         else:
-            destination = download_path
+            destination = folder_path
 
         chromeOptions = webdriver.ChromeOptions()
         prefs = {"download.default_directory": destination}
@@ -200,7 +204,24 @@ class PrismaWebPage(object):
         self.driver.close()
 
 
+def plan_file_exists(campaign_id, folder_path):
+    plan_files = get_media_plan_files(folder_path)
+    if True in [campaign_id in plan for plan in plan_files]:
+        return True
+    else:
+        return False
+
+
+def download_plan(campaign_id, folder_path, wait_time=5):
+    plan = PrismaWebPage(campaign_id, folder_path)
+    plan.export_media_plan()
+
+    while True:
+        if plan_file_exists(campaign_id, folder_path):
+            return True
+        else:
+            time.sleep(wait_time)
+
+
 if __name__ == '__main__':
-    page = PrismaWebPage("CPGLTP", "c:/users/derrik.gooden/desktop")
-    page.new_buy_tab()
-    page.export_media_plan()
+    pass

@@ -108,34 +108,24 @@ def load_dcm(profileId, reportId, path=None, force_run=False):
     return df
 
 
-def merge_with_prisma(df, plan='default', join_on=None):
+def merge_with_prisma(df, plan, join_on=None):
 
     if join_on is None:
         join_on = ["Campaign", "Placement"]
+
     elif "Placement" not in join_on:
         raise ValueError("Reports must be merged by at least the placement level")
 
-    if plan == 'default':
-        plans = [MediaPlan(file) for file in get_media_plan_files(plan_path)]
-    else:
-        if isinstance(plan, str):
-            plans = [MediaPlan(plan)]
-        else:
-            plans = [MediaPlan(file) for file in plan]
+    plan = MediaPlan(plan_path)
+    plan.parse()
 
-    parsed_plans = []
-
-    for plan in plans:
-        plan.parse()
-        parsed_plans.extend(plan.output)
-
-    df2 = pd.DataFrame(parsed_plans, columns=["Campaign", "Placement",
-                                              "Planned Units", "Planned Cost",
-                                              "Rate", "Placement Start Date",
-                                              "Placement End Date"])
+    plan_df = pd.DataFrame(plan.output, columns=["Campaign", "Placement",
+                                                 "Planned Units", "Planned Cost",
+                                                 "Rate", "Placement Start Date",
+                                                 "Placement End Date"])
 
     df.sort_values(['Site (DCM)', 'Placement'], inplace=True)
-    df = df.merge(df2.drop_duplicates(), how="left", left_on=join_on,
+    df = df.merge(plan_df.drop_duplicates(), how="left", left_on=join_on,
                   right_on=join_on)
     return df
     # df.fillna(0, inplace=True)
