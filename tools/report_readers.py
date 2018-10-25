@@ -6,8 +6,8 @@ from datetime import datetime
 import parsedatetime as pdt
 import xlwings as xw
 
-from .prisma import MediaPlan, get_media_plan_files
-from .config import dcm_report_path, plan_path
+from .prisma import MediaPlan
+from .config import dcm_report_path
 from api import run_and_download_report, Report
 
 import warnings
@@ -108,7 +108,7 @@ def load_dcm(profileId, reportId, path=None, force_run=False):
     return df
 
 
-def merge_with_prisma(df, plan, join_on=None):
+def merge_with_prisma(df, plan_path, join_on=None):
 
     if join_on is None:
         join_on = ["Campaign", "Placement"]

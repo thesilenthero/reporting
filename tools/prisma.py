@@ -3,8 +3,6 @@ from collections import defaultdict
 import os
 import re
 
-from .config import plan_path
-
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -12,6 +10,8 @@ from selenium.webdriver.common.by import By
 from selenium.common import exceptions
 
 import time
+
+from .config import plan_path
 
 
 class MediaPlan(object):

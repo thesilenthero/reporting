@@ -148,7 +148,7 @@ class Report(APIResource):
 
             self.body = new_body
 
-    def set_date_range(self, *, start=None, end=None, period=None):
+    def set_date_range(self, start=None, end=None, period=None):
 
         # LAST_14_DAYS
         # LAST_24_MONTHS
@@ -175,7 +175,7 @@ class Report(APIResource):
             raise ValueError("You select either a start and end date, or a period, but not both")
 
         if not period and not start and not end:
-            raise TypeError("You must include either a start and end date, or a period")
+            raise ValueError("You must include either a start and end date, or a period")
 
         with self.update_request_body() as body:
 

@@ -34,6 +34,9 @@ def merge_with_programmatic_report(prog_filepath, prog_sheet_name, dcm_df, merge
 
     placement_id_col = find_matching_column(prog_df, r"^\d{9}$")
 
+    dcm_df['Placement ID'] = dcm_df['Placement ID'].astype(int)
+    prog_df[placement_id_col] = prog_df[placement_id_col].astype(int)
+
     prog_merge_on = merge_on.copy()
     prog_merge_on[prog_merge_on.index('Placement ID')] = placement_id_col
 
