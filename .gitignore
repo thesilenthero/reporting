@@ -6,6 +6,7 @@
 *.xlsm
 *.csv
 client_secret.json
+credentials.json
 **/env
 **/__pycache__/
 practice.py
