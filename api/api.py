@@ -5,6 +5,7 @@ Module for downloading reports via the DCM API.
 """
 
 
+import json
 import os
 import time
 
@@ -148,28 +149,7 @@ class Report(APIResource):
 
             self.body = new_body
 
-    def set_date_range(self, start=None, end=None, period=None):
-
-        # LAST_14_DAYS
-        # LAST_24_MONTHS
-        # LAST_30_DAYS
-        # LAST_365_DAYS
-        # LAST_60_DAYS
-        # LAST_7_DAYS
-        # LAST_90_DAYS
-        # MONTH_TO_DATE
-        # PREVIOUS_MONTH
-        # PREVIOUS_QUARTER
-        # PREVIOUS_WEEK
-        # PREVIOUS_YEAR
-        # QUARTER_TO_DATE
-        # TODAY
-        # WEEK_TO_DATE
-        # YEAR_TO_DATE
-        # YESTERDAY
-        """
-
-        """
+    def set_date_range(self, start=None, end=None, *, period=None):
 
         if (start or end) and period:
             raise ValueError("You select either a start and end date, or a period, but not both")
@@ -202,6 +182,18 @@ class Report(APIResource):
 
         with self.update_request_body() as body:
             body["format"] = format
+
+    def set_dimensions(self, dimensions):
+        with open("standard_dimensions.json", "r") as f:
+            standard_dimensions = json.load(f)
+
+        with self.update_request_body() as body:
+            body['criteria']['dimensions'] = []
+            for dimension in dimensions:
+                entry = {'kind': 'dfareporting#sortedDimension',
+                         'name': standard_dimensions[dimension.lower()]["API Name"]}
+
+                body['criteria']['dimensions'].append(entry)
 
     def __repr__(self):
         return f"Report(name='{self.name}', id='{self.reportId}', profileId='{self.profileId}')"
@@ -281,4 +273,4 @@ def run_and_download_report(profileId, reportId, path=None, check_interval=10):
 
 
 if __name__ == '__main__':
-    rep = Report(profileId=3085707, reportId=155277304)
+    pass

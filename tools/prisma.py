@@ -11,7 +11,6 @@ from selenium.common import exceptions
 
 import time
 
-from .config import plan_path
 
 
 class MediaPlan(object):
@@ -109,10 +108,7 @@ class MediaPlan(object):
                 writer.writerow(row)
 
 
-def get_media_plan_files(path=None):
-
-    if not path:
-        path = plan_path
+def get_media_plan_files(path):
 
     if not os.path.isdir(path):
         raise ValueError(f"{path} is not a directory.")
@@ -138,15 +134,12 @@ def delay(seconds=10):
 
 class PrismaWebPage(object):
 
-    def __init__(self, campaign_id, folder_path="default"):
+    def __init__(self, campaign_id, folder_path):
         self.campaign_id = campaign_id
 
         self.url = f"https://omgca-prisma.mediaocean.com/campaign-management/#osAppId=prsm-cm-spa&osPspId=prsm-cm-buy&campaign-id={self.campaign_id.upper()}&route=online"
 
-        if folder_path == "default":
-            destination = plan_path
-        else:
-            destination = folder_path
+        destination = folder_path
 
         chromeOptions = webdriver.ChromeOptions()
         prefs = {"download.default_directory": destination}

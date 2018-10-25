@@ -15,4 +15,4 @@ def create_folders():
 
 
 if __name__ == '__main__':
-    pass
+    create_folders()

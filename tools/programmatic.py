@@ -19,6 +19,20 @@ def find_matching_column(df, pattern):
 
 
 def merge_with_programmatic_report(prog_filepath, prog_sheet_name, dcm_df, merge_on=['Placement ID'], merge_prog_columns=['Spend']):
+    """
+    Merge columns from a programmatic report with another report (presumably DCM)
+
+    args:
+    - prog_filepath: path to the programmatic report
+    - prog_sheet_name: name of the sheet containing the raw data
+    - dcm_df: existing dataframe upon which to merge
+    - merge_on: common column(s) between the two data sources. Minimum required
+    is the placement ID. The function will attempt to find the Placement ID column
+    in the programmatic report if it is not named so if it is not named so
+    - merge_prog_columns: the columns from the programmatic report being merged.
+    By default it is set to ['Spend'], spend being the most common
+
+    """
 
     if 'Placement ID' not in merge_on:
         error_message = "The reports have to be merged on at least the Placement ID level."
