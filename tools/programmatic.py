@@ -1,12 +1,7 @@
 # programmatic.py
-import os
 import pandas as pd
 
-from .config import prog_report_path
 from .report_readers import redistribute_units
-
-report_files = list(os.walk(prog_report_path))[-1][-1]
-programmatic_report_files = [os.path.join(prog_report_path, file) for file in report_files]
 
 
 def find_matching_column(df, pattern):

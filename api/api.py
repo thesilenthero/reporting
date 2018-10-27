@@ -184,7 +184,10 @@ class Report(APIResource):
             body["format"] = format
 
     def set_dimensions(self, dimensions):
-        with open("standard_dimensions.json", "r") as f:
+
+        path = os.path.join(os.path.split(__file__)[0], "standard_dimensions.json")
+
+        with open(path, "r") as f:
             standard_dimensions = json.load(f)
 
         with self.update_request_body() as body:
