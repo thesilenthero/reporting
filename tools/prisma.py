@@ -12,7 +12,6 @@ from selenium.common import exceptions
 import time
 
 
-
 class MediaPlan(object):
 
     def __init__(self, path):
@@ -29,8 +28,6 @@ class MediaPlan(object):
             self.__setattr__(col, i)
 
         self.path = path
-
-        # self.campaign_name = self.media_plan[1][0].strip()
 
         self.packages = defaultdict(list)
 
