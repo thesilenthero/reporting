@@ -79,14 +79,21 @@ class ReportSetDateRangeTests(TestReportTestCase):
 
 class ToolsTests(unittest.TestCase):
 
-    def test_redistribute_units_function(self):
-        test_df = pd.DataFrame({'col1': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'c', 'c', ],
-                                'col2': ['1', '2', '3', '1', '2', '1', '2', '3', '4'],
-                                'col3': [10, 10, 10, 10, 10, 10, 10, 10, 10, ]})
+    test_df = pd.DataFrame({'col1': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'c', 'c', ],
+                            'col2': ['1', '2', '3', '1', '2', '1', '2', '3', '4'],
+                            'col3': [10, 10, 10, 10, 10, 10, 10, 10, 10, ]})
 
-        results = round(tools.redistribute_units(test_df, ['col1'], 'col3'), 3)
+    def test_redistribute_units_function_one_dimension(self):
+
+        results = round(tools.redistribute_units(self.test_df, ['col1'], 'col3'), 3)
 
         correct_answers = [3.333, 3.333, 3.333, 5.0, 5.0, 2.5, 2.5, 2.5, 2.5]
+        for result, answer in zip(results, correct_answers):
+            self.assertEqual(result, answer)
+
+    def test_redistribute_units_function_two_dimensions(self):
+        results = tools.redistribute_units(self.test_df, ['col1', 'col2'], 'col3')
+        correct_answers = [10, 10, 10, 10, 10, 10, 10, 10, 10, ]
         for result, answer in zip(results, correct_answers):
             self.assertEqual(result, answer)
 
@@ -98,8 +105,6 @@ class ToolsTests(unittest.TestCase):
 
 
 class MiscellaneousTests(unittest.TestCase):
-
-    pass
 
     period_map = pd.DataFrame([
         {'end': pd.Timestamp('2018-10-07 00:00:00'),

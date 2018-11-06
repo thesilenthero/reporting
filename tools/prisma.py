@@ -30,6 +30,7 @@ class MediaPlan(object):
         self.path = path
 
         self.packages = defaultdict(list)
+        # self.name = self.media_plan[1][self.campaign_name]
 
     def is_placement_row(self, row):
         return row[self.rate] and row[self.cost] and row[self.units] and row[self.supplier]
@@ -103,6 +104,9 @@ class MediaPlan(object):
             writer.writerow(["Campaign", "Placement", "Planned Units", "Planned Cost", "Rate", "Placement Start Date", "Placement End Date"])
             for row in self.output:
                 writer.writerow(row)
+
+    def __repr__(self):
+        return f"MediaPlan(campaign_name='{self.media_plan[1][self.campaign_name]}')"
 
 
 def get_media_plan_files(path):
@@ -214,4 +218,5 @@ def download_plan(campaign_id, folder_path, wait_time=5):
 
 
 if __name__ == '__main__':
-    pass
+    plan = MediaPlan("c:/users/derrik.gooden/desktop/test_plan.csv")
+    print(plan)
