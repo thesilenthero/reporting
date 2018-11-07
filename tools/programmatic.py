@@ -53,6 +53,6 @@ def merge_with_programmatic_report(prog_filepath, prog_sheet_name, dcm_df, merge
 
     dcm_df = dcm_df.merge(prog_spend, left_on=merge_on, right_index=True, how='left')
 
-    dcm_df['Spend'] = redistribute_units(dcm_df, merge_on, 'Spend')
+    dcm_df['Spend'] = redistribute_units(dcm_df, merge_on, 'Spend', 'Impressions')
 
     return dcm_df

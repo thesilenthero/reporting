@@ -80,19 +80,35 @@ class ReportSetDateRangeTests(TestReportTestCase):
 class ToolsTests(unittest.TestCase):
 
     test_df = pd.DataFrame({'col1': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'c', 'c', ],
-                            'col2': ['1', '2', '3', '1', '2', '1', '2', '3', '4'],
-                            'col3': [10, 10, 10, 10, 10, 10, 10, 10, 10, ]})
+                            'col2': ['x', 'y', 'z', 'x', 'y', 'x', 'y', 'z', 'u'],
+                            'col3': [1, 2, 3, 1, 2, 1, 2, 3, 4],
+                            'col4': [10, 10, 10, 10, 10, 10, 10, 10, 10, ]})
 
     def test_redistribute_units_function_one_dimension(self):
 
-        results = round(tools.redistribute_units(self.test_df, ['col1'], 'col3'), 3)
+        results = round(tools.redistribute_units(self.test_df, 'col1', 'col4'), 3)
 
         correct_answers = [3.333, 3.333, 3.333, 5.0, 5.0, 2.5, 2.5, 2.5, 2.5]
         for result, answer in zip(results, correct_answers):
             self.assertEqual(result, answer)
 
-    def test_redistribute_units_function_two_dimensions(self):
-        results = tools.redistribute_units(self.test_df, ['col1', 'col2'], 'col3')
+    def test_redistribute_units_function_multidimension(self):
+        results = tools.redistribute_units(self.test_df, ['col1', 'col2'], 'col4')
+        correct_answers = [10, 10, 10, 10, 10, 10, 10, 10, 10, ]
+        for result, answer in zip(results, correct_answers):
+            self.assertEqual(result, answer)
+
+    def test_redistribute_units_function_weighted_parameter(self):
+
+        results = round(tools.redistribute_units(self.test_df, 'col1', 'col4', weight_against='col3'), 3)
+
+        correct_answers = [1.667, 3.333, 5.0, 3.333, 6.667, 1.0, 2.0, 3.0, 4.0]
+        for result, answer in zip(results, correct_answers):
+            self.assertEqual(result, answer)
+
+    def test_redistribute_units_function_weight_parameter_multidimension(self):
+        results = tools.redistribute_units(self.test_df, ['col1', 'col2'], 'col4',
+                                           weight_against='col3')
         correct_answers = [10, 10, 10, 10, 10, 10, 10, 10, 10, ]
         for result, answer in zip(results, correct_answers):
             self.assertEqual(result, answer)
@@ -140,7 +156,9 @@ class MiscellaneousTests(unittest.TestCase):
     def test_get_period_from_daterange(self):
 
         periods = [(pd.Timestamp("September 19, 2018"), "Sept 17 - Oct 7"),
-                   (pd.Timestamp("October 19, 2018"), "Oct 8 - Nov 4")]
+                   (pd.Timestamp("October 19, 2018"), "Oct 8 - Nov 4"),
+                   (pd.Timestamp("November 4, 2018"), "Oct 8 - Nov 4"),
+                   (pd.Timestamp("October 7, 2018"), "Sept 17 - Oct 7")]
 
         for p in periods:
 

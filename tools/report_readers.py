@@ -24,7 +24,7 @@ def parse_datestr(datestr):
     return datetime(*cal.parse(datestr)[0][:6])
 
 
-def redistribute_units(df, left_columns, right_column, weighted_on='na'):
+def redistribute_units(df, left_columns, right_column, weight_against='na'):
     """
     When combining datasets, some columns might be duplicated. This is a common
     scenario when including planned costs in a DCM report that has more dimensions
@@ -52,10 +52,7 @@ def redistribute_units(df, left_columns, right_column, weighted_on='na'):
     dtype: float64
     """
 
-    if weighted_on == 'na':
-
-        if isinstance(left_columns, str):
-            left_columns = [left_columns]
+    if weight_against == "na":
 
         mapping = df.groupby(left_columns).count()
         counts = df.apply(lambda row: mapping.loc[tuple(row[left_columns])][right_column], axis=1)
@@ -63,7 +60,10 @@ def redistribute_units(df, left_columns, right_column, weighted_on='na'):
 
     else:
 
-        pass
+        sums = df.groupby(left_columns)[weight_against].sum()
+        weights = df.apply(lambda row: row[weight_against] / sums.loc[tuple(row[left_columns])], axis=1)
+
+        return df[right_column] * weights
 
 
 def load_from_csv(path):
