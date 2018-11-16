@@ -84,7 +84,7 @@ class ToolsTests(unittest.TestCase):
                             'col3': [1, 2, 3, 1, 2, 1, 2, 3, 4],
                             'col4': [10, 10, 10, 10, 10, 10, 10, 10, 10, ]})
 
-    def test_redistribute_units_function_one_dimension(self):
+    def test_redistribute_units_function_one_left_dimension(self):
 
         results = round(tools.redistribute_units(self.test_df, 'col1', 'col4'), 3)
 
@@ -92,7 +92,16 @@ class ToolsTests(unittest.TestCase):
         for result, answer in zip(results, correct_answers):
             self.assertEqual(result, answer)
 
-    def test_redistribute_units_function_multidimension(self):
+    def test_redistribute_units_function_one_left_dimension_as_list(self):
+
+        results = round(tools.redistribute_units(self.test_df, ['col1'], 'col4'), 3)
+
+        correct_answers = [3.333, 3.333, 3.333, 5.0, 5.0, 2.5, 2.5, 2.5, 2.5]
+        for result, answer in zip(results, correct_answers):
+            self.assertEqual(result, answer)
+
+
+    def test_redistribute_units_function_multi_left_dimension(self):
         results = tools.redistribute_units(self.test_df, ['col1', 'col2'], 'col4')
         correct_answers = [10, 10, 10, 10, 10, 10, 10, 10, 10, ]
         for result, answer in zip(results, correct_answers):
