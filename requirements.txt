@@ -15,7 +15,7 @@ pyasn1==0.4.4
 pyasn1-modules==0.2.2
 python-dateutil==2.7.3
 pytz==2018.5
-pywin32==223
+pywin32==301
 rsa==3.4.2
 selenium==3.14.0
 six==1.11.0
